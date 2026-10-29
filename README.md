@@ -16,14 +16,49 @@ Previously GTM Engineer at **[TabbyML](https://github.com/TabbyML/tabby)**, the 
 
 | Project | What it does |
 |---|---|
-| [Lead-sourcing pipeline](#1-agentic-lead-sourcing-pipeline) | AI agents scrape startup lists, check each company in a browser, score it against the ICP |
-| [Outreach dashboard](#2-outreach-health-dashboard) | Tracks the outreach campaigns run on those leads, pulled from the API every week |
-| [Warm outbound engine](#3-warm-outbound-engine) | Outreach to the open-source user base, targeting tuned every cycle |
-| [X engagement agent](#4-x-engagement-agent) | Agent drafts replies, a human approves them in a GitHub PR |
+| [X engagement agent](#1-x-engagement-agent) · [code](https://github.com/jinsyl123/x-engagement-agent) | Agent drafts replies to developer posts; code checks and a human PR review gate every word |
+| [Lead-sourcing pipeline](#2-agentic-lead-sourcing-pipeline) | AI agents scrape startup lists, check each company in a browser, score it against the ICP |
+| [Outreach dashboard](#3-outreach-health-dashboard) | Tracks the outreach campaigns run on those leads, pulled from the API every week |
+| [Warm outbound engine](#4-warm-outbound-engine) | Outreach to the open-source user base, targeting tuned every cycle |
 
 ---
 
-### 1. Agentic lead-sourcing pipeline
+### 1. X engagement agent
+
+**The problem:** Engaging developers on X was manual, inconsistent, and dependent on one person. "Just let an LLM reply" is how brands post confident nonsense in public.
+
+**How it works:** a chain of agent skills. A browser agent fetches posts → **rule-based pre-filter in code** → LLM grounds the post, runs a bridge test, scores and drafts → **strict schema validation** → accounting check → each session opens as a **GitHub PR** → reviewer decisions sync back into the agent's state. Ran 900+ sessions in production.
+
+**Engineering calls that mattered:**
+- **LLM output is untrusted input.** Every draft must parse against Pydantic models (grounding, bridge test, score, ≤280 chars). One malformed post fails the run.
+- **Don't trust the agent to follow its own instructions.** Dedup and author caps are re-applied in code at finalize against on-disk state, and anything the agent let slip is flagged in the PR.
+- **Cheap filters before expensive ones.** Keyword, crowding, freshness and cooldown rules in code; the LLM only judges nuance.
+- **State fails loudly.** A corrupt state file stops the run instead of silently forgetting history and re-engaging the same people.
+- **PRs as the review step.** Reused a tool the team already lived in; every reply has an audit trail.
+- **Skip by default.** The bar: would a senior engineer learn something concrete from it?
+
+<details><summary>Diagram</summary>
+
+```mermaid
+flowchart TD
+    A[Browser agent fetches posts] --> B[Rule filter in code]
+    B -->|skip| S[Skipped, with reason]
+    B -->|keep| C[LLM: ground, bridge test, score, draft]
+    C --> D[Schema + accounting + dedup re-check]
+    D -->|fail| X[Run stops]
+    D --> E[GitHub PR: human accept / reject / edit]
+    E --> F[(Agent state)]
+    F --> B
+```
+</details>
+
+📂 **[Clean-room rewrite: jinsyl123/x-engagement-agent](https://github.com/jinsyl123/x-engagement-agent)** (same architecture, no original code or data)
+
+`AI agents` · `Python` · `Pydantic` · `pytest` · `GitHub CLI` · `Browser automation (MCP)`
+
+---
+
+### 2. Agentic lead-sourcing pipeline
 
 **The problem:** We needed a narrow, technical B2B segment that no off-the-shelf list covered. Hand-sourcing was slow and noisy.
 
@@ -56,9 +91,9 @@ flowchart TD
 
 ---
 
-### 2. Outreach health dashboard
+### 3. Outreach health dashboard
 
-**The problem:** The leads from project #1 went into LinkedIn and email campaigns, but the outreach platform's own dashboard didn't give reliable numbers. We couldn't tell which campaigns were working, or when we'd run out of leads.
+**The problem:** The leads from project #2 went into LinkedIn and email campaigns, but the outreach platform's own dashboard didn't give reliable numbers. We couldn't tell which campaigns were working, or when we'd run out of leads.
 
 **How it works:** a Python job pulls every campaign's data from the outreach platform's API → computes health metrics → writes a weekly snapshot to a shared dashboard. GitHub Actions runs it every week. It tracks connections, replies, interested leads and **lead runway** (leads imported − leads reached), which says when to source more.
 
@@ -70,7 +105,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Leads from project 1] --> B[LinkedIn + email campaigns]
+    A[Leads from project 2] --> B[LinkedIn + email campaigns]
     B --> C[Weekly cron: GitHub Actions]
     C --> D[Python pulls platform API]
     D --> E[(Dashboard)]
@@ -82,36 +117,18 @@ flowchart TD
 
 ---
 
-<a name="3-warm-outbound-engine"></a>
+<a name="4-warm-outbound-engine"></a>
 <details>
-<summary><b>3. Warm outbound engine</b>: click to expand</summary>
+<summary><b>4. Warm outbound engine</b>: click to expand</summary>
 
 **The problem:** The open-source project had community awareness but no path from it to qualified conversations.
 
 **What I built:** 300 warm contacts mined from the open-source user base (developers who'd already used the product), email and LinkedIn sequences, and a reply playbook organised by lead intent so replies scale without deliberating each one.
 
 **Judgment call that mattered:**
-- **Fixed targeting before copy.** Low early replies looked like a messaging problem. The data said targeting: a big share of the list simply wasn't the right kind of company. Tightening the ICP took reply rate from **<5% to ~40%**, and LinkedIn open rate from **~40% to 60–70%**. That ICP lesson later became the core of project #1.
+- **Fixed targeting before copy.** Low early replies looked like a messaging problem. The data said targeting: a big share of the list simply wasn't the right kind of company. Tightening the ICP took reply rate from **<5% to ~40%**, and LinkedIn open rate from **~40% to 60–70%**. That ICP lesson later became the core of project #2.
 
 `Outbound` · `ICP design` · `Email + LinkedIn sequencing`
-
-</details>
-
-<a name="4-x-engagement-agent"></a>
-<details>
-<summary><b>4. X engagement agent</b>: click to expand</summary>
-
-**The problem:** Engaging developers on X was manual, inconsistent, and dependent on one person.
-
-**How it works:** an agent browses X, filters posts, drafts replies, and opens each session as a **GitHub PR**. A reviewer accepts or rejects each reply in the PR, and the decisions sync back into the agent's state.
-
-**Judgment calls that mattered:**
-- **Skip by default.** Hard filters (freshness, crowding, relevance, no over-engaging anyone), then a scoring rubric for what's left.
-- **Quality gates before any reply.** The bar: would a senior engineer learn something concrete from it? Generic commentary gets skipped.
-- **PRs as the review step.** That reused a tool the team already lived in, and every reply had an audit trail.
-- **Fail loudly.** A corrupted state file stops the run instead of re-engaging old posts. Runbook and tests included, so a new operator can run it on day one.
-
-`AI agents` · `Python` · `pytest` · `GitHub CLI`
 
 </details>
 
@@ -124,4 +141,4 @@ flowchart TD
 
 **Toolbox:** `Python` · `SQL` · `REST APIs` · `GitHub Actions` · `Claude Code` · `AI agents` · `Apollo` · `La Growth Machine`
 
-<sub>Code for projects 1–4 was built at TabbyML and is private. Happy to walk through any of it live.</sub>
+<sub>Code for projects 1–4 was built at TabbyML and is private; project 1 has a public clean-room rewrite. Happy to walk through any of it live.</sub>
