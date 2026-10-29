@@ -27,7 +27,7 @@ Previously GTM Engineer at **[TabbyML](https://github.com/TabbyML/tabby)**, the 
 
 **The problem:** Engaging developers on X was manual, inconsistent, and dependent on one person. "Just let an LLM reply" is how brands post confident nonsense in public.
 
-**How it works:** a chain of agent skills. A browser agent fetches posts → **rule-based pre-filter in code** → LLM grounds the post, runs a bridge test, scores and drafts → **strict schema validation** → accounting check → each session opens as a **GitHub PR** → reviewer decisions sync back into the agent's state. Ran 900+ sessions in production.
+**How it works:** a chain of agent skills. A browser agent fetches posts → **rule-based pre-filter in code** → LLM grounds the post, runs a bridge test, scores and drafts → **strict schema validation** → accounting check → each session opens as a **GitHub PR** → reviewer decisions sync back into the agent's state. Used internally for about 10 months: 900+ review sessions.
 
 **Engineering calls that mattered:**
 - **LLM output is untrusted input.** Every draft must parse against Pydantic models (grounding, bridge test, score, ≤280 chars). One malformed post fails the run.
