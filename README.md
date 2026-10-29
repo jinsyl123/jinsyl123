@@ -52,7 +52,7 @@ flowchart TD
 ```
 </details>
 
-📂 **[Clean-room rewrite: jinsyl123/x-engagement-agent](https://github.com/jinsyl123/x-engagement-agent)** (same architecture, no original code or data)
+📂 **[Clean-room rewrite: jinsyl123/x-engagement-agent](https://github.com/jinsyl123/x-engagement-agent)** (same architecture, no original code or data) · 📜 **[How the original evolved over 10 months](https://github.com/jinsyl123/x-engagement-agent#how-the-original-evolved)**
 
 `AI agents` · `Python` · `Pydantic` · `pytest` · `GitHub CLI` · `Browser automation (MCP)`
 
