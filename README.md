@@ -52,7 +52,7 @@ flowchart TD
 ```
 </details>
 
-📂 **[Clean-room rewrite: jinsyl123/x-engagement-agent](https://github.com/jinsyl123/x-engagement-agent)** (same architecture, no original code or data) · 📜 **[How the original evolved over 10 months](https://github.com/jinsyl123/x-engagement-agent#how-the-original-evolved)**
+📂 **[Public rewrite: jinsyl123/x-engagement-agent](https://github.com/jinsyl123/x-engagement-agent)** (same architecture, rewritten code, no company data) · 📜 **[How the original evolved over 10 months](https://github.com/jinsyl123/x-engagement-agent#how-the-original-evolved)**
 
 `AI agents` · `Python` · `Pydantic` · `pytest` · `GitHub CLI` · `Browser automation (MCP)`
 
@@ -141,4 +141,4 @@ flowchart TD
 
 **Toolbox:** `Python` · `SQL` · `REST APIs` · `GitHub Actions` · `Claude Code` · `AI agents` · `Apollo` · `La Growth Machine`
 
-<sub>Code for projects 1–4 was built at TabbyML and is private; project 1 has a public clean-room rewrite. Happy to walk through any of it live.</sub>
+<sub>Code for projects 1–4 was built at TabbyML and is private; project 1 has a public rewrite. Happy to walk through any of it live.</sub>
